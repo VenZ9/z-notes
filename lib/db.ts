@@ -1,5 +1,7 @@
 import { db } from "@vercel/postgres";
 
+type Row = Record<string, any>;
+
 const statements = [
   `
   CREATE TABLE IF NOT EXISTS notes (
@@ -97,7 +99,7 @@ export async function ensureSchema() {
   return schemaPromise;
 }
 
-export async function query<T = any>(text: string, params: any[] = []) {
+export async function query(text: string, params: any[] = []) {
   await ensureSchema();
-  return db.query<T>(text, params);
+  return db.query<Row>(text, params);
 }

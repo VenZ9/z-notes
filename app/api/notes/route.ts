@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Topic is required." }, { status: 400 });
     }
 
-    let note = await createNote({
+    const created = await createNote({
       title: title || topic,
       topic: topic || title,
       content,
@@ -47,9 +47,28 @@ export async function POST(req: NextRequest) {
       status: "draft",
     });
 
+    if (!created) {
+      return NextResponse.json(
+        { error: "Failed to create note." },
+        { status: 500 }
+      );
+    }
+
+    let note = created;
+
     if (Array.isArray(body.sources) && body.sources.length) {
       await replaceNoteSources(note.id, body.sources);
-      note = await getNote(note.id);
+
+      const refreshed = await getNote(note.id);
+
+      if (!refreshed) {
+        return NextResponse.json(
+          { error: "Failed to load created note." },
+          { status: 500 }
+        );
+      }
+
+      note = refreshed;
     }
 
     return NextResponse.json(note, { status: 201 });
